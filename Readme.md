@@ -980,9 +980,10 @@ $ mv ~/Downloads/pythonsoftware.ovpn ~/Desktop/TryHackme
 
 Step-4
 **Aşağıdaki komutlardan bir tanesini çalıştırabilirsibiz**
-$ sudo openvpn --config ~/Desktop/TryHackme/pythonsoftware.ovpn           (Arka planda çalışmaz)
-VEYA
+- Bağlantıyı terminali kapatmadan arka planda çalıştırmak için & operatörünü kullanabilirsiniz:
 $ sudo openvpn --config ~/Desktop/TryHackme/pythonsoftware.ovpn & disown  (Arka planda çalışsın)
+VEYA
+$ sudo openvpn --config ~/Desktop/TryHackme/pythonsoftware.ovpn           (Arka planda çalışmaz)
 VEYA
 $ sudo openvpn --config ~/Documents/pythonsoftware.ovpn --dev tun0         (UI Olan)
 
@@ -991,17 +992,135 @@ Step-5
 UFW(Uncompicated Firewall)
 $ sudo apt update && sudo apt install ufw -y
 $ sudo ufw status
+- Bu komut, Linux terminalinde dpkg paket yöneticisini kullanarak UFW (Uncomplicated Firewall) paketinin yüklü olup olmadığını kontrol eder.
+- dpkg -l: Sistemde yüklü olan tüm paketleri listeler.| grep ufw: Çıktıyı filtreleyerek yalnızca "ufw" kelimesini içeren satırları gösterir.
 $ dpkg -l | grep ufw
 
+- Bu komut, UFW (Uncomplicated Firewall) üzerinden tun0 adlı ağ arayüzü üzerinden yapılan çıkış trafiğine (outgoing traffic) izin verir.
+- sudo: Yönetici yetkileriyle komutu çalıştırır.
+- ufw: Uncomplicated Firewall aracını kullanır.
+`-`allow out: Çıkış trafiğine (outgoing traffic) izin verir.
+on tun0: tun0 arayüzü üzerinden gelen/giden paketleri hedefler.
 $ sudo ufw allow out on tun0
-$ sudo ufw allow out 1194/udp
+-  Bu komut, UFW (Uncomplicated Firewall) kullanarak 1194 numaralı UDP portundan çıkış trafiğine izin verir.
+-  sudo → Yönetici (root) yetkileriyle komutu çalıştırır.
+-  ufw → Uncomplicated Firewall aracını kullanır.
+-  allow out → Çıkış (outgoing) trafiğine izin verir.
+-  1194/udp → UDP protokolü üzerinden 1194 numaralı portu hedef alır.
+-  VPN Bağlantıları İçin Önemlidir: 1194/UDP, OpenVPN'in varsayılan portudur.
+-  sudo ufw allow out 1194/udp
+
+- Bu komut, Linux terminalinde çalıştırıldığında, sistemde tun0 adlı ağ arayüzünün olup olmadığını kontrol eder.
+- Ne İşe Yarar?
+- VPN Bağlantısını Kontrol Etmek İçin Kullanılır: tun0, genellikle OpenVPN veya başka bir tünel arayüzü tarafından oluşturulan sanal ağ arayüzüdür.
 $ ip a | grep tun0
 
 Step-6
+- Bağlantıyı tekrar güncelle
+$ sudo openvpn --config ~/Desktop/TryHackme/pythonsoftware.ovpn & disown
+
+- Bağlantıyı doğrulayın:
 $ curl ifconfig.me
+- $ ip a | grep tun0
 $ ip route
 
 Step-7
+- 1. Eğer tun0 veya tun1 görünüyor ama ifconfig.me hâlâ gerçek IP’nizi gösteriyorsa, yönlendirme sorunu var demektir.
+ip a | grep tun
+
+- 2. Yönlendirme Tablolarını Manuel Olarak Güncelle
+$ ip route
+default via 192.168.1.1 dev eth0 proto dhcp src 192.168.1.18 metric 100
+10.10.0.0/16 via 10.23.0.1 dev tun0 metric 1000
+10.23.0.0/16 dev tun0 proto kernel scope link src 10.23.79.49
+10.23.0.0/16 dev tun1 proto kernel scope link src 10.23.79.49
+10.101.0.0/16 via 10.23.0.1 dev tun0 metric 1000
+10.103.0.0/16 via 10.23.0.1 dev tun0 metric 1000
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.18 metric 100
+
+Gördüğünüz ip route çıktısına göre, VPN bağlantınız aktif görünüyor, ancak tüm internet trafiği hala yerel ağ (192.168.1.1) üzerinden yönlendiriliyor. Bunun nedeni, varsayılan yönlendirmenin (default via 192.168.1.1 dev eth0) hala yerel ağ üzerinden gitmesi.
+
+Yani, OpenVPN yalnızca belirli TryHackMe IP bloklarını (10.10.0.0/16, 10.101.0.0/16, 10.103.0.0/16) yönlendiriyor, ancak genel internet trafiğiniz VPN üzerinden gitmiyor.
+
+Çözüm: Tüm Trafiği VPN Üzerinden Yönlendirme
+Tüm internet trafiğini OpenVPN tüneli üzerinden yönlendirmek için şu adımları izleyin:
+
+Dikkat: Bu ayarlar sanal makinenizi kapatıp açtığınızda default ayarla olacaktır kalıcı olmayacaktır.
+1. Varsayılan Yönlendirmeyi VPN’e Değiştir
+   Önce mevcut varsayılan yönlendirmeyi (default via 192.168.1.1 dev eth0) kaldırın:
+   $ sudo ip route del default via 192.168.1.1 dev eth0
+
+2. Ardından, VPN tüneli üzerinden yeni bir varsayılan yönlendirme ekleyin:
+   $ sudo ip route add default via 10.23.0.1 dev tun0
+
+3. Bağlantıyı test etmek için tekrar şu komutu çalıştırın:
+   $ curl ifconfig.me
+   Bu sefer farklı bir IP adresi görmelisiniz. Eğer hâlâ eski IP’nizi görüyorsanız, DNS ayarlarınızı kontrol edin.
+
+4. resolv.conf dosyanızı açın:
+   $ sudo vim /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+
+5. Ağ hizmetlerini yeniden başlatın:
+   $ sudo systemctl restart networking
+   $ curl ifconfig.me
+
+Eğer hala kendi gerçek IP’nizi görüyorsanız (78.190.251.139 gibi), yönlendirmeleri (route) manuel olarak güncellemeniz gerekebilir.
+Eğer farklı bir IP görüyorsanız, tüm trafiğiniz OpenVPN üzerinden yönlendiriliyor demektir.
+
+6. nslookup tryhackme.com
+   Eğer Google DNS (8.8.8.8 veya 8.8.4.4) üzerinden sorgu yapılıyorsa, DNS yönlendirmesi de sorunsuz çalışıyor demektir.
+
+Eğer bunlar görünmüyorsa manuel oalrak
+$ sudo vim /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+
+veya Eğer OpenDNS kullanmak isterseniz:
+nameserver 208.67.222.222
+nameserver 208.67.220.220
+$ nslookup tryhackme.com
+
+sudo systemctl start openvpn@server
+sudo systemctl status openvpn@server
+sudo systemctl stop openvpn@server
+sudo systemctl enable openvpn@server
+
+sudo openvpn --config ~/Desktop/TryHackme/pythonsoftware.ovpn & disown
+
+
+## DVWA (TryHackMe gibi başka bir sayfa)
+```sh 
+
+```
+---
+cd Desktop
+pwd
+mkdir DVWA_WEB
+cd DVWA_WEB
+git clone https://github.com/digininja/DVWA.git
+cd DVWA/config
+cp config.inc.php.dist config.inc.php
+sudo apt install apache2 mariadb-server php php-mysql
+sudo systemctl start apache2
+sudo systemctl status apache2
+sudo systemctl enable apache2
+sudo systemctl stop apache2
+
+sudo systemctl start mysql
+sudo systemctl status mysql
+sudo systemctl enable mysql
+
+mysql -u root -p
+password
+CREATE DATABASE dvwa;
+GRANT ALL PRIVILEGES ON dvwa.* TO 'dvwauser'@'localhost' IDENTIFIED BY 'password';
+FLUSH PRIVILEGES;
+exit;
+
+http://localhost:80
+
 
 ## Kali Linux
 ```sh 
