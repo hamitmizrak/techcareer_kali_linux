@@ -1112,267 +1112,248 @@ sudo systemctl start mysql
 sudo systemctl status mysql
 sudo systemctl enable mysql
 
+sudo mysql
+VEYA
 mysql -u root -p
-password
+
+SHOW DATABASES;
 CREATE DATABASE dvwa;
+SHOW DATABASES;
 GRANT ALL PRIVILEGES ON dvwa.* TO 'dvwauser'@'localhost' IDENTIFIED BY 'password';
 FLUSH PRIVILEGES;
 exit;
 
+sudo mysql
+SHOW DATABASES;
+USE dvwa;
+SHOW TABLES;
+
+DROP DATABASE dvwa;
+SHOW DATABASES;
 http://localhost:80
 
 
-## Kali Linux
+## Kali Linux Gerekli Kütüphaneler
 ```sh 
 
 ```
 ---
 
 
+```sh 
+sudo apt update && sudo apt full-upgrade -y
 
+# Eğer ekstra depoları eklediyseniz ve bağımlılıklar eksikse, şu komutları da çalıştırabilirsiniz:
+sudo apt --fix-broken install
 
-## ifconfig(Eskidi)
+# Alternatif olarak Kali’nin tüm araçlarını yüklemek isterseniz:
+sudo apt install kali-linux-large
+
+# 1.2.2 Tarayıcı ve Uzantılar
+Bazı testler için tarayıcı ve eklentiler gereklidir. Önerilen eklentiler:
+
+# Firefox’u yüklemek için:
+sudo apt install firefox-esr -y
+
+# Chrome’u yüklemek için:
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+sudo apt --fix-broken install -y
+```
+---
+
+---
+## 1- Pasif Bilgi Toplama
 ```sh 
 
 ```
 ---
-### **`ifconfig` Komutu ve Çıktısının Detaylı Açıklaması**
-`ifconfig` komutu, Linux sistemlerinde ağ arayüzleri hakkında bilgi almak ve yönetmek için kullanılır. Bu komut ile ağ kartlarınızın (Ethernet, Wi-Fi, Loopback vb.) detaylarını görebilirsiniz.
 
----
+# Hedef Web Sayfasınıs Manuel Kontrol Etmek
+http://localhost:10.10.10.10
+curl 10.10.10.10
+http://localhost:10.10.10.10/robots.txt
+http://localhost:10.10.10.10/sitemap.xml
+http://localhost:10.10.10.10/admin
+http://localhost:10.10.10.10/login
 
-## **Örnek `ifconfig` Çıktısı ve Açıklaması**
-```bash
-eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-      inet 192.168.1.100  netmask 255.255.255.0  broadcast 192.168.1.255
-      inet6 fe80::1a2b:3c4d:5e6f:7g8h  prefixlen 64  scopeid 0x20<link>
-      ether 00:1a:2b:3c:4d:5e  txqueuelen 1000  (Ethernet)
-      RX packets 12500  bytes 1002300 (1.0 MB)
-      RX errors 0  dropped 0  overruns 0  frame 0
-      TX packets 8300  bytes 750400 (750.4 KB)
-      TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+## 1- Pasif Bilgi Toplama (Web Sunucunu indirmek)
+```sh 
+wget http://10.10.10.10
+cat index.html
+
+RESULT: 1 tane CSS, 1 tane Script
+<link rel="stylesheet" type="text/css" media="screen" href="main.css">
+<script src="main.js"></script>
 ```
-
 ---
 
-## **1. Arayüz Adı (eth0, wlan0, lo vb.)**
-- **`eth0`** → İlk kablolu ağ arayüzü. (Ethernet bağlantısı)
-- **`wlan0`** → İlk kablosuz ağ arayüzü. (Wi-Fi bağlantısı)
-- **`lo`** → Loopback arayüzü (127.0.0.1 - Yerel sistem bağlantısı)
 
----
-
-## **2. `flags` (Arayüz Durumu ve Özellikleri)**
-Bu kısım, arayüzün durumunu ve desteklediği özellikleri gösterir.
-
-**Örnek:**
-```bash
-flags=4163<UP,BROADCAST,RUNNING,MULTICAST>
-```
-- **`UP`** → Arayüz etkin durumda.
-- **`BROADCAST`** → Geniş yayın (broadcast) destekliyor.
-- **`RUNNING`** → Fiziksel bağlantı aktif.
-- **`MULTICAST`** → Çok noktaya yayın (multicast) destekliyor.
-
----
-
-## **3. `mtu` (Maksimum İletim Birimi)**
-- **Örnek:** `mtu 1500`
-- MTU (Maximum Transmission Unit), bir paketin maksimum boyutunu belirtir.
-- **1500 bayt** genellikle Ethernet ağlarında kullanılan standart değerdir.
-- Daha büyük MTU, daha az paket başlığı ile daha fazla veri taşır, ancak parçalanma riski artar.
-
----
-/home/kali/Downloads/pythonsoftware.ovpn/home/kali/Downloads/pythonsoftware.ovpn
-## **4. IPv4 Adresi (`inet`)**
-```bash
-inet 192.168.1.100  netmask 255.255.255.0  broadcast 192.168.1.255
-```
-- **`inet 192.168.1.100`** → Bu cihazın IPv4 adresi.
-- **`netmask 255.255.255.0`** → Alt ağ maskesi.
-  - **255.255.255.0** → 192.168.1.0/24 ağında olduğunu gösterir (256 adres içerir).
-- **`broadcast 192.168.1.255`** → Ağdaki tüm cihazlara yayın yapmak için kullanılan adres.
-
----
-
-## **5. IPv6 Adresi (`inet6`)**
-```bash
-inet6 fe80::1a2b:3c4d:5e6f:7g8h  prefixlen 64  scopeid 0x20<link>
-```
-- **`inet6 fe80::1a2b:3c4d:5e6f:7g8h`** → Cihazın IPv6 adresi.
-- **`prefixlen 64`** → Alt ağ uzunluğu (IPv4'teki netmask gibi).
-- **`scopeid 0x20<link>`** → Bağlantı yerel kapsamında (link-local) bir IPv6 adresi.
-
----
-
-## **6. MAC Adresi (`ether`)**
-```bash
-ether 00:1a:2b:3c:4d:5e
-```
-- **MAC Adresi:** `00:1a:2b:3c:4d:5e`
-- Bu adres, her ağ arayüzü için **benzersiz** bir fiziksel adresdir.
-- Üretici firmayı belirlemek için kullanılabilir.
-
----
-
-## **7. `txqueuelen` (İletim Kuyruk Uzunluğu)**
-```bash
-txqueuelen 1000  (Ethernet)
-```
-- Veri iletim sırasındaki maksimum kuyruk uzunluğunu gösterir.
-- **Varsayılan olarak 1000**'dir.
-- Aşırı trafik yükünde ayarlanabilir.
-
----
-
-## **8. Veri Paketleri ve Trafik (RX/TX)**
-**Gelen (RX - Received) ve Giden (TX - Transmitted) veriler şu şekilde analiz edilir:**
-
-```bash
-RX packets 12500  bytes 1002300 (1.0 MB)
-```
-- **12500** gelen paket alındı.
-- **1002300 bayt (1.0 MB)** veri alındı.
-
-```bash
-TX packets 8300  bytes 750400 (750.4 KB)
-```
-- **8300** giden paket gönderildi.
-- **750400 bayt (750.4 KB)** veri gönderildi.
-
----
-
-## **9. Hata ve Kayıp Paketler**
-Bu kısım, ağ bağlantınızda yaşanan sorunları belirlemenizi sağlar.
-
-```bash
-RX errors 0  dropped 0  overruns 0  frame 0
-TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-```
-
-| Alan        | Açıklama |
-|-------------|----------|
-| **errors**  | Veri paketlerinde hata olup olmadığını gösterir. |
-| **dropped** | Cihazın veya ağın reddettiği paketler. |
-| **overruns**| Arabellekte (buffer) taşma olup olmadığını gösterir. |
-| **frame**   | Çerçeve hataları (örneğin yanlış MAC adresi). |
-| **carrier** | Fiziksel bağlantı hataları. |
-| **collisions** | Ethernet çakışmalarını gösterir (Eski ağlarda önemliydi). |
-
----
-
-## **Loopback Arayüzü (`lo`)**
-Loopback arayüzü, sistemin **kendisiyle iletişim kurmasını** sağlar.
-
-Örnek:
-```bash
-lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
-    inet 127.0.0.1  netmask 255.0.0.0
-    inet6 ::1  prefixlen 128  scopeid 0x10<host>
-```
-- **`127.0.0.1`** → Kendine yönlendirilmiş IP adresi (localhost).
-- **`mtu 65536`** → Büyük boyutlu veri iletimi için yüksek değer kullanılır.
-
----
-
-## **Özet**
-- **`ifconfig`**, ağ arayüzleri hakkında detaylı bilgi verir.
-- **IP adresi**, **MAC adresi**, **alt ağ maskesi**, **gelen/giden veri**, **hatalar** gibi birçok metrik gösterir.
-- Eğer `ifconfig` komutu çalışmazsa, yeni sistemlerde yerine aşağıdaki komutlar kullanılabilir:
-  ```bash
-  ip a  # (ip address show)
-  ip link show
-  ```
-
-## Ağ Hakkında Bilgi
+## 2- Aktif Bilgi Topla (Reconnaissa)
 ```sh 
 
 ```
 ---
-Kali Linux terminalinden **10.10.10.10** IP adresi hakkında detaylı bilgi almak için aşağıdaki komutları kullanabilirsiniz:
 
-### 1. **Ping ile Canlılık Kontrolü**
-```bash
-ping -c 4 10.10.10.10
+## PING
+```sh 
+# Ping ile Canlılık kontrolü (Hedef IP'ni aktif olup olmadığını ve/veya ağ geçikmeleri test eder)
+# TryHackMe IP: 10.10.10.10
+ping -c 4 10.10.10.10 
+VEYA
+ping  10.10.10.10 
 ```
-Bu komut, hedef IP'nin aktif olup olmadığını ve ağ gecikmesini test eder.
+---
 
-### 2. **Traceroute ile Yol Takibi**
-```bash
+## NETWORK
+```sh 
+whoami
+pwd
+hostname
+ifconfig veya ip a
+
+```
+---
+
+
+## WHOIS
+```sh 
+whois 10.10.10.10
+# Alan Adı sahibi
+Kayıt tarihi, güncelleme tarihi
+DNS IP Bilgileri
+iletişim bilgilerini
+
+```
+---
+
+## TRACEROUTE
+```sh 
+# Traceroute: Yol takibini sağlıyor yani Bu komut paketin hedefe ulaşırken geçtiği yönlendiricvileri gösterir.
 traceroute 10.10.10.10
 ```
-Bu komut, paketin hedefe ulaşırken geçtiği yönlendiricileri gösterir.
+---
 
-### 3. **DNS Bilgisi için Reverse Lookup**
-```bash
+
+## DNLOOKUP
+```sh 
+# nsloop: Bu komut IP adresine bağlı alan adlarının olup olmadığını bulmak
 nslookup 10.10.10.10
 ```
+---
+
+
+## IFONFIG / MAC ADDRESS
+```sh 
+# Ağ arayüzü bilgisi
+ifconfig 
 veya
-```bash
-dig -x 10.10.10.10
-```
-Bu komut, IP adresine bağlı bir alan adı olup olmadığını kontrol eder.
+ip a 
 
-### 4. **Ağdaki Açık Portları Tarama (Nmap)**
-```bash
-nmap -sV -p- 10.10.10.10
-```
-Bu komut, hedef IP üzerindeki tüm açık portları ve çalışan servisleri tespit eder.
-
-Eğer daha detaylı bir tarama yapmak istiyorsanız:
-```bash
-nmap -A 10.10.10.10
-```
-Bu komut, işletim sistemi tahmini, servis versiyon bilgisi ve traceroute gibi ek bilgileri içerir.
-
-### 5. **Hedef IP'deki Servisleri Belirleme**
-```bash
-nmap -sC -sV 10.10.10.10
-```
-Bu komut, Nmap'in varsayılan komut dosyalarıyla hizmet sürümlerini belirler.
-
-### 6. **Ağ Arayüzü Bilgisi**
-```bash
-ifconfig
-```
-veya yeni sistemlerde:
-```bash
-ip a
-```
-Bu komut, sisteminizin IP adresini ve ağ arayüzlerini gösterir.
-
-### 7. **MAC Adresi ve Üretici Bilgisi (ARP)**
-```bash
+# MAC Address ve üretici Bilgisi (ARP)
 arp -a 10.10.10.10
-```
-Eğer hedef aynı ağdaysa, MAC adresini ve olası üretici bilgilerini gösterir.
 
-### 8. **Hedef İşletim Sistemini Belirleme**
-```bash
-nmap -O 10.10.10.10
 ```
-Bu komut, IP adresinin işletim sistemini tespit etmeye çalışır.
+---
 
-### 9. **Wireshark ile Ağ Trafiğini İzleme**
-```bash
-wireshark &
-```
-veya sadece belirli bir arayüzde dinleme yapmak için:
-```bash
-tcpdump -i eth0 -n host 10.10.10.10
-```
-Bu komut, hedef IP'ye giden veya ondan gelen trafiği görüntüler.
 
-### 10. **SMB ve NetBIOS Bilgisi (Windows İçin)**
-```bash
-smbclient -L //10.10.10.10
-```
-veya NetBIOS bilgisi için:
-```bash
-nbtscan 10.10.10.10
+## teknoloji tespitleri
+```sh 
+whatweb http://10.10.10.10
+
+RESULT:
+http://10.10.10.10 
+[200 OK] 
+Country[RESERVED][ZZ], 
+HTML5, 
+IP[10.10.10.10], 
+Script, 
+Title[Connected Successfully], 
+X-UA-Compatible[IE=edge]
+                              
 ```
 ---
 
 
 
+## Hızlı Port Arama (nmap)
+```sh 
+# Hedef İşletim Sistemi Bilgileri
+nmap -O 10.10.10.10 
+# 22/tcp open  ssh
+# 80/tcp open  http
+
+# Belli port arama
+nmap -p 21,22,80,443 10.10.10.10
+
+
+# Sadece belirli bir port açık mı ?
+nmap -p 80 10.10.10.10
+
+# Hızlı port arama
+nmap -F 10.10.10.10 
+RESULT: 
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-03-09 13:55 +03
+Nmap scan report for 10.10.10.10 (10.10.10.10)
+Host is up (0.11s latency).
+Not shown: 98 closed tcp ports (reset)
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+# Tam port arama
+nmap -p- 10.10.10.10
+
+
+# Detaylı Port ve Servis Tarama
+nmap -sS -sV -O -A 10.10.10.10
+# -sS (Stealth tarama) (TCP vb)
+# -sV (Çalışan servisleri ve versiyonlar)
+# -O  (İşletim sistemi tespiti)
+# -A (Gelişmiş analiz modu [OS, Servisler, scriptler])
+# 10.10.10.10
+
+# Nmpa ile HTTP Başlıklarını Analiz Etmek
+nmap -p 80 --script=http-headers 10.10.10.10
+
+# Açık portlardaki Zafiyetleri bulma
+nmap --script vuln 10.10.10.10
+
+```
+---
+
+
+## Nikto Sonuçlar Analizi ve İleri Seviye Keşif
+```sh 
+nikto -h http://10.10.10.10
+```
+---
+
+
+## Diğer
+```sh 
+
+```
+---
+
+
+## Diğer
+```sh 
+
+```
+---
+
+
+## Diğer
+```sh 
+
+```
+---
+
+
+## Diğer
+```sh 
+
+```
+---
 
